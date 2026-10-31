@@ -3,12 +3,16 @@ import io
 import json
 import os
 import time
+import base64
+from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI, AuthenticationError, RateLimitError, APIConnectionError, APIStatusError
 
 load_dotenv()
 st.set_page_config(page_title="Rainbow Voice Studio", page_icon="🌈", layout="wide")
+ASSETS = Path(__file__).resolve().parent / "assets"
+logo = base64.b64encode((ASSETS / "agent-logo.svg").read_bytes()).decode()
 st.markdown('''<style>
 :root{color-scheme:light}
 .stApp{background:radial-gradient(ellipse at 5% 0%,#f4e7ff 0%,transparent 40%),radial-gradient(ellipse at 95% 10%,#def8fb 0%,transparent 40%),#f7f8fd;color:#202b49}
@@ -53,6 +57,28 @@ input::placeholder,textarea::placeholder{color:#6b7790!important}
 [data-testid="stForm"]{background:#faf9ff;border:1px solid #e0daf0;border-radius:16px;padding:16px}
 [data-testid="stExpander"]{background:#edeafa;border-color:#d4cbea;border-radius:13px}
 @media(max-width:640px){.hero{padding:20px 16px;gap:12px}.hero h1{font-size:1.45rem}.orb{width:54px;height:54px;font-size:28px}.block-container{padding:1rem}.hero p{font-size:.82rem}}
+
+/* Compact studio layout with deliberate spacing and stronger color rhythm. */
+.block-container{max-width:1240px;padding-top:3.2rem;padding-bottom:1rem}
+[data-testid="stVerticalBlock"]{gap:.65rem}
+[data-testid="stSidebar"]{background:linear-gradient(155deg,#eae3ff 0%,#eaf2ff 52%,#dcf7f0 100%)}
+[data-testid="stSidebarUserContent"]{padding:1.1rem 1.2rem}
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{gap:.55rem}
+.hero{padding:19px 23px;margin-bottom:3px;border-radius:22px;background:linear-gradient(105deg,#f4e7ff,#e8efff 55%,#dcf7f1);box-shadow:0 7px 24px #6744b512}
+.hero h1{font-size:1.9rem;letter-spacing:-.045em}.hero p{font-size:.88rem}
+.agent-logo{width:70px;height:70px;flex-shrink:0;filter:drop-shadow(0 7px 12px #934bb128)}
+.hero-copy{flex:1}.hero-badge{background:#ffffffaa;border:1px solid #cbbde9;color:#5c3a91;border-radius:30px;padding:7px 12px;font-size:.72rem;font-weight:700;white-space:nowrap}
+.sidebar-brand{display:flex;align-items:center;gap:10px;margin-bottom:8px}.sidebar-brand img{width:37px;height:37px}.sidebar-brand strong{display:block;color:#33264e;font-size:1rem}.sidebar-brand small{color:#645377;font-size:.7rem}
+[data-testid="stMetric"]{padding:10px 15px;background:#eee8ff;border-top-color:#8957dc;border-radius:14px}
+[data-testid="stColumn"]:nth-child(2) [data-testid="stMetric"]{background:#e0f5ee;border-top-color:#209b82}
+[data-testid="stColumn"]:nth-child(3) [data-testid="stMetric"]{background:#fff0e6;border-top-color:#e98a49}
+[data-testid="stMetricValue"]{font-size:1.35rem}
+[data-testid="stForm"]{padding:12px;background:#f0edfc;border-radius:15px}
+.stButton>button,.stDownloadButton>button,[data-testid="stFormSubmitButton"] button{min-height:2.5rem}
+[data-testid="stTabs"] [role="tab"]{padding:7px 15px}
+.workspace-label{font-size:.72rem;font-weight:800;letter-spacing:.11em;color:#6d4b9b;margin:4px 0 0}
+@media(max-width:640px){.block-container{padding-top:3.5rem}.hero{padding:16px;gap:12px}.hero h1{font-size:1.35rem}.agent-logo{width:53px;height:53px}.hero-badge{display:none}}
+
 </style>''', unsafe_allow_html=True)
 
 PROFILES = {
@@ -90,7 +116,7 @@ def speak(client, text, model, voice):
     return response.content
 
 with st.sidebar:
-    st.markdown("### 🎛️ Studio controls")
+    st.markdown(f'<div class="sidebar-brand"><img src="data:image/svg+xml;base64,{logo}" alt="AI agent"><div><strong>Voice Agent AI</strong><small>YOUR CONVERSATION STUDIO</small></div></div>', unsafe_allow_html=True)
     entered_key = st.text_input("🔑 OpenAI API key", type="password", help="Used only by this server session. Never included in downloads.")
     api_key = entered_key.strip() or os.getenv("OPENAI_API_KEY", "") or secret_key()
     st.caption("Key supplied · access checked on request" if api_key else "Enter your key to enable the assistant")
@@ -109,12 +135,13 @@ with st.sidebar:
         st.session_state.messages = []
         st.session_state.capture += 1
         st.session_state.elapsed = 0.0
+        st.session_state.reset_draft = True
         st.rerun()
     export = [{k: v for k, v in m.items() if k in ("role", "content")} for m in st.session_state.messages]
     st.download_button("📥 Download conversation", json.dumps(export, ensure_ascii=False, indent=2), "conversation.json", "application/json", disabled=not export, use_container_width=True)
     st.caption("Audio and text are sent to OpenAI when you submit. API usage is billed separately. History is kept in this server session until cleared or the session ends.")
 
-st.markdown('''<div class="hero"><div class="orb">🎙️</div><div><div class="eyebrow">LISTEN · THINK · RESPOND</div><h1>Rainbow Voice Studio</h1><p>Speak naturally. Explore ideas. Hear something helpful.</p></div></div>''', unsafe_allow_html=True)
+st.markdown(f'''<div class="hero"><img class="agent-logo" src="data:image/svg+xml;base64,{logo}" alt="Voice AI agent logo"><div class="hero-copy"><div class="eyebrow">YOUR IDEAS. A VOICE THAT CONNECTS.</div><h1>Voice Agent <span style="color:#8b42bd">AI</span></h1><p>Speak, discover and create with your personal AI companion.</p></div><span class="hero-badge">✦ Rainbow Studio</span></div>''', unsafe_allow_html=True)
 a,b,c = st.columns(3)
 a.metric("💬 Conversation turns", sum(m["role"] == "assistant" for m in st.session_state.messages))
 b.metric("🎛️ Studio mode", "Voice + text" if voice_on else "Text replies")
@@ -138,15 +165,15 @@ for index, msg in enumerate(st.session_state.messages):
                     st.error(explain_error(exc))
 
 with st.container(border=True):
-    record_tab, upload_tab = st.tabs(["🎙️ Record", "📂 Upload audio"])
-    with record_tab:
-        recording = st.audio_input("🎙️ Record your message", key=f"mic-{st.session_state.capture}", sample_rate=16000, disabled=not api_key)
-    with upload_tab:
-        uploaded = st.file_uploader("WAV, MP3, M4A, WEBM, MP4 or OGG · up to 20 MB", type=["wav","mp3","m4a","webm","mp4","ogg"], key=f"upload-{st.session_state.capture}", disabled=not api_key)
-        if uploaded:
-            st.audio(uploaded)
-    source = st.radio("🎚️ Audio source", ["Recording", "Uploaded file"], horizontal=True)
-    selected = recording if source == "Recording" else uploaded
+    st.markdown('<div class="workspace-label">🎙️ YOUR VOICE WORKSPACE</div>', unsafe_allow_html=True)
+    source = st.radio("Input method", ["🎙️ Record", "📂 Upload audio", "⌨️ Type a message"], horizontal=True, label_visibility="collapsed")
+    selected = None
+    if source == "🎙️ Record":
+        selected = st.audio_input("🎙️ Record your message", key=f"mic-{st.session_state.capture}", sample_rate=16000, disabled=not api_key)
+    elif source == "📂 Upload audio":
+        selected = st.file_uploader("WAV, MP3, M4A, WEBM, MP4 or OGG · up to 20 MB", type=["wav","mp3","m4a","webm","mp4","ogg"], key=f"upload-{st.session_state.capture}", disabled=not api_key)
+        if selected:
+            st.audio(selected)
     if st.button("✍️ Transcribe selected audio", disabled=not (api_key and selected), use_container_width=True):
         if selected.size > 20_000_000 or selected.size == 0:
             st.error("Please use a non-empty audio file smaller than 20 MB.")
@@ -164,7 +191,7 @@ with st.container(border=True):
             except Exception as exc:
                 st.error(explain_error(exc))
     with st.form("send_message", clear_on_submit=False):
-        text = st.text_area("📝 Review the transcript or type your message", key="draft", placeholder="Ask about a trip, practice an interview, or explore GIS…", max_chars=12000)
+        text = st.text_area("📝 Review the transcript or type your message", key="draft", placeholder="Ask about a trip, practice an interview, or explore GIS…", max_chars=12000, height=100)
         send = st.form_submit_button("🚀 Send to voice agent", type="primary", disabled=not api_key, use_container_width=True)
 
 if send:
@@ -209,4 +236,5 @@ if st.session_state.pop("voice_error", None):
 if st.session_state.pop("play_new", False) and st.session_state.messages and st.session_state.messages[-1].get("audio"):
     st.audio(st.session_state.messages[-1]["audio"], format="audio/mp3", autoplay=True)
 
-st.caption("Rainbow Voice Studio · Built for clear conversations · Browser microphone access requires localhost or HTTPS")
+st.caption("✦ Voice Agent AI · AI-generated voice · Microphone works on localhost or HTTPS")
+
