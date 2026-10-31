@@ -10,16 +10,49 @@ from openai import OpenAI, AuthenticationError, RateLimitError, APIConnectionErr
 load_dotenv()
 st.set_page_config(page_title="Rainbow Voice Studio", page_icon="🌈", layout="wide")
 st.markdown('''<style>
-.stApp{background:radial-gradient(ellipse at top left,#242043 0%,#111526 55%,#101827 100%);color:#edf2ff}
-.block-container{max-width:1150px;padding-top:2rem;padding-bottom:2rem}
-[data-testid="stSidebar"]{background:#151b30}
-h1,h2,h3{letter-spacing:-.025em} .hero{display:flex;align-items:center;gap:18px;padding:22px;border:1px solid #454468;border-radius:22px;background:linear-gradient(120deg,#272144,#182c40);margin-bottom:18px}
-.orb{flex-shrink:0;width:66px;height:66px;border-radius:22px;display:grid;place-items:center;font-size:32px;background:linear-gradient(135deg,#ff526f,#ffb84d,#65d8b1,#51afff,#b074ff);box-shadow:0 8px 30px #b074ff33}
-.hero h1{font-size:1.9rem;margin:0}.hero p{margin:4px 0;color:#c2cce5}.eyebrow{font-size:.7rem;letter-spacing:.15em;color:#a6e7e2}
-.stButton>button[kind="primary"]{background:linear-gradient(110deg,#9c49d8,#d84683,#db7654);border:0;color:white}
-.stButton>button,.stDownloadButton>button{border-radius:12px;border-color:#555475}
-[data-testid="stChatMessage"]{border:1px solid #373e59;border-radius:16px;background:#1a2034}
-[data-testid="stMetric"]{background:#1a2136;border-radius:14px;padding:12px;border-top:3px solid #a775ee}
+:root{color-scheme:light}
+.stApp{background:radial-gradient(ellipse at 5% 0%,#f4e7ff 0%,transparent 40%),radial-gradient(ellipse at 95% 10%,#def8fb 0%,transparent 40%),#f7f8fd;color:#202b49}
+[data-testid="stHeader"]{background:rgba(247,248,253,.95)}
+.block-container{max-width:1140px;padding-top:1.5rem;padding-bottom:1.5rem}
+[data-testid="stSidebar"]{background:linear-gradient(165deg,#f0ebff,#eaf5ff 65%,#e3f8f3);border-right:1px solid #d7ddef}
+[data-testid="stSidebar"] .block-container{padding-top:1rem}
+h1,h2,h3{letter-spacing:-.035em;color:#202b49}
+[data-testid="stMarkdownContainer"] p,[data-testid="stWidgetLabel"] p,
+[data-testid="stCaptionContainer"],label{color:#354467}
+[data-testid="stCaptionContainer"]{font-size:.82rem}
+.hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:20px;padding:25px 28px;border:1px solid #dedcf6;border-radius:24px;background:linear-gradient(110deg,#fff9f1,#faf2ff 45%,#e7f7ff);box-shadow:0 10px 32px #6050b00d;margin-bottom:14px}
+.hero:before{content:"";position:absolute;left:0;top:0;right:0;height:5px;background:linear-gradient(90deg,#f55077,#f5a238,#e8c94d,#39bd96,#318beb,#9255dd)}
+.orb{flex-shrink:0;width:72px;height:72px;border-radius:23px;display:grid;place-items:center;font-size:35px;background:linear-gradient(135deg,#ff727c,#ffd16b,#67d9bc,#6caeff,#b28af3);box-shadow:0 8px 22px #8955dd26}
+.hero h1{font-size:2rem;line-height:1.2;margin:5px 0 7px;color:#253054}.hero p{margin:0;color:#52617c;font-size:.95rem}.eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.17em;color:#7350b5}
+[data-testid="stMetric"]{background:linear-gradient(130deg,#fff,#f4efff);border:1px solid #e0dcf2;border-radius:17px;padding:14px 18px;box-shadow:0 5px 16px #55459608;border-top:3px solid #975de1}
+[data-testid="stMetricLabel"],[data-testid="stMetricLabel"] p{color:#58617c!important;font-size:.8rem}
+[data-testid="stMetricValue"]{color:#28365c!important;font-size:1.55rem;font-weight:750}
+[data-testid="stVerticalBlockBorderWrapper"]>div{border-color:#dfdef1;border-radius:19px}
+.stButton>button,.stDownloadButton>button,[data-testid="stFormSubmitButton"] button,[data-testid="stFileUploader"] button{
+ background:#ece4ff!important;color:#503187!important;border:1px solid #c8b3ed!important;border-radius:12px!important;font-weight:650;box-shadow:0 3px 8px #8d62c010;transition:all .18s}
+.stButton>button p,.stDownloadButton>button p,[data-testid="stFormSubmitButton"] button p,[data-testid="stFileUploader"] button p{color:inherit!important}
+.stButton>button:hover,.stDownloadButton>button:hover,[data-testid="stFileUploader"] button:hover{background:#ded0fc!important;border-color:#9770d4!important;color:#39216a!important}
+.stButton>button[kind="primary"],[data-testid="stFormSubmitButton"] button[kind="primary"]{background:linear-gradient(105deg,#7040ca,#aa358f,#bd405f)!important;color:#fff!important;border:0!important;box-shadow:0 6px 16px #9b44b12b}
+[data-testid="stFormSubmitButton"] button:hover{filter:brightness(1.08)}
+button:disabled{background:#e7e8f2!important;color:#6a728b!important;border-color:#cfd3e2!important;opacity:1!important;box-shadow:none!important}
+button:focus-visible{outline:3px solid #258fa4!important;outline-offset:3px}
+[data-testid="stTabs"] [role="tablist"]{gap:8px;border:0}
+[data-testid="stTabs"] [role="tab"]{background:#eae5fa;color:#584477;border-radius:12px;padding:9px 18px;height:auto}
+[data-testid="stTabs"] [role="tab"] p{color:inherit!important}
+[data-testid="stTabs"] [role="tab"][aria-selected="true"]{background:#7450bd;color:#fff;box-shadow:0 4px 10px #7450bd20}
+[data-baseweb="tab-highlight"]{background:transparent}
+[data-baseweb="input"],[data-baseweb="textarea"],[data-baseweb="select"]>div{background:#f0edfb!important;color:#263759!important;border-color:#d2cbe8!important;border-radius:11px}
+input,textarea,[data-baseweb="select"] span{color:#263759!important;caret-color:#7040ca!important}
+input::placeholder,textarea::placeholder{color:#6b7790!important}
+[data-baseweb="input"] button{background:#e4ddf6!important;color:#514271!important}
+[data-baseweb="popover"] ul,[role="listbox"]{background:#f6f2ff!important;color:#263759!important}
+[data-testid="stFileUploaderDropzone"]{background:#eff3ff;border:1px dashed #a9a9d6;border-radius:14px}
+[data-testid="stAudioInput"]{border:1px solid #d9d0ef;border-radius:14px;background:#efebfa;padding:5px}
+[data-testid="stAudioInput"] button{background:#ddd2f8!important;color:#503187!important;border-radius:50%}
+[data-testid="stChatMessage"]{border:1px solid #dddff0;border-radius:17px;background:#f0f3ff}
+[data-testid="stForm"]{background:#faf9ff;border:1px solid #e0daf0;border-radius:16px;padding:16px}
+[data-testid="stExpander"]{background:#edeafa;border-color:#d4cbea;border-radius:13px}
+@media(max-width:640px){.hero{padding:20px 16px;gap:12px}.hero h1{font-size:1.45rem}.orb{width:54px;height:54px;font-size:28px}.block-container{padding:1rem}.hero p{font-size:.82rem}}
 </style>''', unsafe_allow_html=True)
 
 PROFILES = {
@@ -58,42 +91,42 @@ def speak(client, text, model, voice):
 
 with st.sidebar:
     st.markdown("### 🎛️ Studio controls")
-    entered_key = st.text_input("OpenAI API key", type="password", help="Used only by this server session. Never included in downloads.")
+    entered_key = st.text_input("🔑 OpenAI API key", type="password", help="Used only by this server session. Never included in downloads.")
     api_key = entered_key.strip() or os.getenv("OPENAI_API_KEY", "") or secret_key()
     st.caption("Key supplied · access checked on request" if api_key else "Enter your key to enable the assistant")
-    profile = st.selectbox("Assistant specialty", list(PROFILES))
-    language = st.selectbox("Reply language", ["Match the user", "English", "Urdu", "Portuguese", "Arabic"])
-    voice = st.selectbox("Voice", VOICES)
-    voice_on = st.toggle("Generate spoken replies", value=True)
-    autoplay = st.toggle("Autoplay new reply", value=False)
-    length = st.select_slider("Response length", ["Brief", "Balanced", "Detailed"], value="Brief")
-    with st.expander("Model & instruction settings"):
-        chat_model = st.text_input("Response model", value="gpt-5.4-mini")
-        stt_model = st.text_input("Transcription model", value="gpt-4o-mini-transcribe")
-        tts_model = st.text_input("Speech model", value="gpt-4o-mini-tts")
-        extra = st.text_area("Additional instructions", placeholder="Example: Use simple language and local examples.")
+    profile = st.selectbox("🧠 Assistant specialty", list(PROFILES))
+    language = st.selectbox("🌍 Reply language", ["Match the user", "English", "Urdu", "Portuguese", "Arabic"])
+    voice = st.selectbox("🎵 Voice", VOICES)
+    voice_on = st.toggle("🔊 Generate spoken replies", value=True)
+    autoplay = st.toggle("▶️ Autoplay new reply", value=False)
+    length = st.select_slider("📏 Response length", ["Brief", "Balanced", "Detailed"], value="Brief")
+    with st.expander("⚙️ Model & instruction settings"):
+        chat_model = st.text_input("🧠 Response model", value="gpt-5.4-mini")
+        stt_model = st.text_input("👂 Transcription model", value="gpt-4o-mini-transcribe")
+        tts_model = st.text_input("🗣️ Speech model", value="gpt-4o-mini-tts")
+        extra = st.text_area("📝 Additional instructions", placeholder="Example: Use simple language and local examples.")
     if st.button("🧹 New conversation", use_container_width=True):
         st.session_state.messages = []
         st.session_state.capture += 1
         st.session_state.elapsed = 0.0
         st.rerun()
     export = [{k: v for k, v in m.items() if k in ("role", "content")} for m in st.session_state.messages]
-    st.download_button("↓ Download conversation", json.dumps(export, ensure_ascii=False, indent=2), "conversation.json", "application/json", disabled=not export, use_container_width=True)
+    st.download_button("📥 Download conversation", json.dumps(export, ensure_ascii=False, indent=2), "conversation.json", "application/json", disabled=not export, use_container_width=True)
     st.caption("Audio and text are sent to OpenAI when you submit. API usage is billed separately. History is kept in this server session until cleared or the session ends.")
 
-st.markdown('''<div class="hero"><div class="orb">🎙️</div><div><div class="eyebrow">LISTEN · THINK · RESPOND</div><h1>Rainbow Voice Studio</h1><p>Your voice. A thoughtful conversation.</p></div></div>''', unsafe_allow_html=True)
+st.markdown('''<div class="hero"><div class="orb">🎙️</div><div><div class="eyebrow">LISTEN · THINK · RESPOND</div><h1>Rainbow Voice Studio</h1><p>Speak naturally. Explore ideas. Hear something helpful.</p></div></div>''', unsafe_allow_html=True)
 a,b,c = st.columns(3)
-a.metric("Conversation turns", sum(m["role"] == "assistant" for m in st.session_state.messages))
-b.metric("Studio mode", "Voice + text" if voice_on else "Text replies")
-c.metric("Last response", f"{st.session_state.elapsed:.1f}s" if st.session_state.elapsed else "Ready")
-st.caption("Record → stop → transcribe → review → send. Replies use an AI-generated voice. This is turn-based conversation, with no live interruption or background listening.")
+a.metric("💬 Conversation turns", sum(m["role"] == "assistant" for m in st.session_state.messages))
+b.metric("🎛️ Studio mode", "Voice + text" if voice_on else "Text replies")
+c.metric("⏱️ Last response", f"{st.session_state.elapsed:.1f}s" if st.session_state.elapsed else "Ready")
+st.caption("🎙️ Record & stop  ·  ✍️ Review transcript  ·  🚀 Send & listen  |  AI-generated voice · Turn-based conversation")
 
 for index, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
         if msg.get("audio"):
             st.audio(msg["audio"], format="audio/mp3")
-            st.download_button("Download voice reply", msg["audio"], f"reply-{index}.mp3", "audio/mpeg", key=f"download-{index}")
+            st.download_button("🎧 Download voice reply", msg["audio"], f"reply-{index}.mp3", "audio/mpeg", key=f"download-{index}")
         elif msg["role"] == "assistant" and api_key:
             if st.button("🔊 Generate / retry voice", key=f"voice-{index}"):
                 try:
@@ -107,12 +140,12 @@ for index, msg in enumerate(st.session_state.messages):
 with st.container(border=True):
     record_tab, upload_tab = st.tabs(["🎙️ Record", "📂 Upload audio"])
     with record_tab:
-        recording = st.audio_input("Record your message", key=f"mic-{st.session_state.capture}", sample_rate=16000, disabled=not api_key)
+        recording = st.audio_input("🎙️ Record your message", key=f"mic-{st.session_state.capture}", sample_rate=16000, disabled=not api_key)
     with upload_tab:
         uploaded = st.file_uploader("WAV, MP3, M4A, WEBM, MP4 or OGG · up to 20 MB", type=["wav","mp3","m4a","webm","mp4","ogg"], key=f"upload-{st.session_state.capture}", disabled=not api_key)
         if uploaded:
             st.audio(uploaded)
-    source = st.radio("Audio source", ["Recording", "Uploaded file"], horizontal=True)
+    source = st.radio("🎚️ Audio source", ["Recording", "Uploaded file"], horizontal=True)
     selected = recording if source == "Recording" else uploaded
     if st.button("✍️ Transcribe selected audio", disabled=not (api_key and selected), use_container_width=True):
         if selected.size > 20_000_000 or selected.size == 0:
@@ -131,8 +164,8 @@ with st.container(border=True):
             except Exception as exc:
                 st.error(explain_error(exc))
     with st.form("send_message", clear_on_submit=False):
-        text = st.text_area("Review the transcript or type your message", key="draft", placeholder="Ask about a trip, practice an interview, or explore GIS…", max_chars=12000)
-        send = st.form_submit_button("Send to voice agent →", type="primary", disabled=not api_key, use_container_width=True)
+        text = st.text_area("📝 Review the transcript or type your message", key="draft", placeholder="Ask about a trip, practice an interview, or explore GIS…", max_chars=12000)
+        send = st.form_submit_button("🚀 Send to voice agent", type="primary", disabled=not api_key, use_container_width=True)
 
 if send:
     if not text.strip():
